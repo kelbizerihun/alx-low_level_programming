@@ -1,73 +1,41 @@
-#include "main.h"
-void closer(int arg_files);
+#include "holberton.h"
+
 /**
- * main - Entry Point
- * @argc: # of args
- * @argv: array pointer for args
- * Return: 0
+ * main - copies the content of a file to another file
+ * @argc: argument count
+ * @argv: argument vector
+ * Return: 0 if success
  */
 int main(int argc, char *argv[])
 {
-	int file_from, file_to, file_from_r, wr_err;
-	char buf[1024];
+	int fd1, fd2;
+	int r, c1, c2;
+	char buffer[1024];
 
 	if (argc != 3)
+		dprintf(STDERR_FILENO, "Usage: cp file_from file_to\n"), exit(97);
+	fd1 = open(argv[1], O_RDONLY);
+	if (fd1 < 0)
 	{
-		dprintf(2, "Usage: cp file_from file_to\n");
-		exit(97);
-	}
-
-	file_from = open(argv[1], O_RDONLY);
-	if (file_from == -1)
-	{
-		dprintf(2, "Error: Can't read from file %s\n", argv[1]);
+		dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", argv[1]);
 		exit(98);
 	}
-
-	file_to = open(argv[2], O_WRONLY | O_TRUNC | O_CREAT, 0664);
-	if (file_to == -1)
+	fd2 = open(argv[2], O_TRUNC | O_CREAT | O_WRONLY, 0664);
+	while ((r = read(fd1, buffer, 1024)) > 0)
 	{
-		dprintf(2, "Error: Can't write to %s\n", argv[2]);
-		exit(99);
+		if (fd2 < 0 || (write(fd2, buffer, r) != r))
+			dprintf(STDERR_FILENO, "Error: Can't write to %s\n", argv[2]), exit(99);
 	}
-
-	while (file_from_r >= 1024)
+	if (r < 0)
 	{
-		file_from_r = read(file_from, buf, 1024);
-		if (file_from_r == -1)
-		{
-			dprintf(2, "Error: Can't read from file %s\n", argv[1]);
-			closer(file_from);
-			closer(file_to);
-			exit(98);
-		}
-		wr_err = write(file_to, buf, file_from_r);
-		if (wr_err == -1)
-		{
-			dprintf(2, "Error: Can't write to %s\n", argv[2]);
-			exit(99);
-		}
+		dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", argv[1]);
+		exit(98);
 	}
-
-	closer(file_from);
-	closer(file_to);
+	c1 = close(fd1);
+	if (c1 < 0)
+		dprintf(STDERR_FILENO, "Error: Can't close fd %i\n", fd1), exit(100);
+	c2 = close(fd2);
+	if (c2 < 0)
+		dprintf(STDERR_FILENO, "Error: Can't close fd %i\n", fd2), exit(100);
 	return (0);
-}
-
-/**
- * closer - close with error
- * @arg_files: argv 1 or 2
- * Return: void
- */
-void closer(int arg_files)
-{
-	int close_err;
-
-	close_err = close(arg_files);
-
-	if (close_err == -1)
-	{
-		dprintf(2, "Error: Can't close fd %d\n", arg_files);
-		exit(100);
-	}
 }
