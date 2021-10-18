@@ -1,34 +1,28 @@
-#include "main.h"
+#include "holberton.h"
+
 /**
- * create_file - Entry Point
- * @filename: file name
- * @text_content: null terminated string to write
- * Return: 1
+ * create_file - creates a file
+ * @filename: pointer to filename
+ * @text_content: string that is appended to file
+ * Return: 1 on success, -1 on failure
  */
 int create_file(const char *filename, char *text_content)
 {
-	int file, i = 0;
+	register int fd, w, len = 0;
 
-	if (filename == NULL)
+	if (!filename)
 		return (-1);
-
-	file = open(filename, O_CREAT | O_TRUNC | O_WRONLY, 0600);
-	if (file == -1)
+	fd = open(filename, O_RDWR | O_CREAT | O_TRUNC, 0600);
+	if (fd == -1)
 		return (-1);
-
-	while (text_content[i])
-		i++;
-
-	if (text_content == NULL)
+	if (text_content)
 	{
-		close(file);
-		return (-1);
+		while (text_content[len])
+			len++;
+		w = write(fd, text_content, len);
+		if (w == -1)
+			return (-1);
 	}
-	else
-	{
-		write(file, text_content, i);
-	}
-
-	close(file);
+	close(fd);
 	return (1);
 }
