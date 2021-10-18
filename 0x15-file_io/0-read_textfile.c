@@ -1,39 +1,44 @@
-#include "main.h"
+#include "holberton.h"
 
 /**
- * read_textfile - Entry Point
- * @filename: file name
- * @letters: size
- * Return: 0
+ * read_textfile - reads a text file and prints it to the
+ * POSIX standard output
+ * @filename: pointer to filename
+ * @letters: bytes to print
+ * Return: actual bytes printed
  */
 ssize_t read_textfile(const char *filename, size_t letters)
 {
-	int file, rd, wr;
-	char *buf;
+	register int fd, r, w;
+	char *buffer = NULL;
 
-	if (filename == NULL)
+	if (!filename)
 		return (0);
-
-	file = open(filename, O_RDONLY);
-
-	if (file == -1)
+	buffer = malloc(letters + 1);
+	if (!buffer)
 		return (0);
-
-	buf = malloc(sizeof(char) * letters + 1);
-	if (buf == NULL)
+	fd = open(filename, O_RDONLY);
+	if (fd == -1)
+	{
+		free(buffer);
 		return (0);
-
-	rd = read(file, buf, letters);
-	if (rd == -1)
+	}
+	r = read(fd, buffer, letters);
+	if (r == -1)
+	{
+		free(buffer);
+		close(fd);
 		return (0);
-
-	buf[letters] = '\0';
-
-	wr = write(1, buf, rd);
-	if (wr == -1)
+	}
+	buffer[letters] = '\0';
+	w = write(STDOUT_FILENO, buffer, r);
+	if (w == -1)
+	{
+		free(buffer);
+		close(fd);
 		return (0);
-
-	close(file);
-	free(buf);
-	return (wr);
+	}
+	free(buffer);
+	close(fd);
+	return (w);
 }
